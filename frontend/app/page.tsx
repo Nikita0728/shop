@@ -1,3 +1,4 @@
+import FeaturedProducts from "@/components/Featured";
 import HeroSection from "@/components/HeroSection";
 import LatestProducts from "@/components/LatestProducts";
 import Navbar from "@/components/Navbar";
@@ -9,6 +10,7 @@ export default function Home() {
    <Navbar/>
    <HeroSection/>
    <LatestProducts/>
+   <FeaturedProducts/>
 
    </>
   );
