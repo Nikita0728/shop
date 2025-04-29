@@ -18,8 +18,7 @@ const Navbar: React.FC = () => {
 
       {/* Right - Login/Signup */}
       <div className="flex gap-4">
-        <button className="px-4 py-2 rounded bg-blue-500 hover:bg-blue-600">Login</button>
-        <button className="px-4 py-2 rounded border border-white hover:bg-white hover:text-gray-800">Signup</button>
+        <button className="px-4 py-2 rounded bg-blue-500 hover:bg-blue-600">Login/SignUp</button>
       </div>
     </nav>
   );
