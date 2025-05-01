@@ -262,8 +262,9 @@ export default function Navbar() {
       {/* Navbar */}
       <nav className="fixed top-0 left-0 w-full bg-white shadow-md z-50">
         <div className="max-w-[1200px] w-full px-4 md:px-32 flex items-center justify-between py-3 mx-auto">
+          SHOPME
           {/* Logo */}
-          <Link href="/">
+          {/* <Link href="/">
             <Image
               src="/images/logo/pharmalogo.png"
               alt="Pharma Logo"
@@ -271,7 +272,7 @@ export default function Navbar() {
               height={10}
               priority
             />
-          </Link>
+          </Link> */}
 
           {/* Desktop Links */}
           <div className="hidden md:flex space-x-8">
