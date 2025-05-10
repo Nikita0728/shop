@@ -37,8 +37,13 @@ export default function Navbar() {
   const [showUserDropdown, setShowUserDropdown] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Auth Data
-  const [authData, setAuthData] = useState<AuthData>({
+  // Auth Data - Separate states for login and signup
+  const [loginData, setLoginData] = useState<AuthData>({
+    email: '',
+    password: ''
+  });
+
+  const [signupData, setSignupData] = useState<AuthData>({
     name: '',
     email: '',
     password: '',
@@ -55,10 +60,28 @@ export default function Navbar() {
     }
   }, []);
 
-  // Handle input changes
-  const handleAuthChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Handle input changes for login
+  const handleLoginChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setAuthData(prev => ({
+    setLoginData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+
+    // Clear error when user types
+    if (errors[name as keyof FormErrors]) {
+      setErrors(prev => ({
+        ...prev,
+        [name]: '',
+        general: ''
+      }));
+    }
+  };
+
+  // Handle input changes for signup
+  const handleSignupChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setSignupData(prev => ({
       ...prev,
       [name]: value
     }));
@@ -78,32 +101,36 @@ export default function Navbar() {
     const newErrors: FormErrors = {};
     let isValid = true;
 
-    if (!authData.email) {
+    const dataToValidate = isLogin ? loginData : signupData;
+
+    if (!dataToValidate.email) {
       newErrors.email = 'Email is required';
       isValid = false;
-    } else if (!/^\S+@\S+\.\S+$/.test(authData.email)) {
+    } else if (!/^\S+@\S+\.\S+$/.test(dataToValidate.email)) {
       newErrors.email = 'Email is invalid';
       isValid = false;
     }
 
-    if (!authData.password) {
+    if (!dataToValidate.password) {
       newErrors.password = 'Password is required';
       isValid = false;
-    } else if (authData.password.length < 6) {
+    } else if (dataToValidate.password.length < 6) {
       newErrors.password = 'Password must be at least 6 characters';
       isValid = false;
     }
 
     if (!isLogin) {
-      if (!authData.name) {
+      const signupData = dataToValidate as AuthData;
+      
+      if (!signupData.name) {
         newErrors.name = 'Name is required';
         isValid = false;
       }
 
-      if (!authData.confirmPassword) {
+      if (!signupData.confirmPassword) {
         newErrors.confirmPassword = 'Please confirm your password';
         isValid = false;
-      } else if (authData.password !== authData.confirmPassword) {
+      } else if (signupData.password !== signupData.confirmPassword) {
         newErrors.confirmPassword = 'Passwords do not match';
         isValid = false;
       }
@@ -137,10 +164,10 @@ export default function Navbar() {
   // Login handler
   const handleLogin = async () => {
     const response = await axios.post(
-      "http://127.0.0.1:8000/api/login/",
+      "http://127.0.0.1:8000/login/",
       {
-        email: authData.email,
-        password: authData.password
+        email: loginData.email,
+        password: loginData.password
       },
       {
         headers: { 'Content-Type': 'application/json' }
@@ -163,22 +190,44 @@ export default function Navbar() {
   };
 
   // Registration handler
-  const handleRegistration = async () => {
+// Registration handler
+const handleRegistration = async () => {
+  try {
     const response = await axios.post(
       "http://127.0.0.1:8000/accounts/register/",
       {
-        username: authData.name,
-        email: authData.email,
-        password: authData.password
+        username: signupData.name,
+        email: signupData.email,
+        password: signupData.password
       },
       {
         headers: { 'Content-Type': 'application/json' }
       }
     );
 
-    // On successful registration, automatically log the user in
-    await handleLogin();
-  };
+    // Check if the response contains tokens (from our updated backend)
+    if (response.data.access && response.data.refresh) {
+      localStorage.setItem('access', response.data.access);
+      localStorage.setItem('refresh', response.data.refresh);
+      localStorage.setItem('status', 'Logged In');
+      
+      setIsLoggedIn(true);
+      setShowAuthModal(false);
+      resetAuthData();
+
+      if (response.data.isadmin) {
+        window.location.href = '/adminsite/dashboard';
+      } else {
+        router.push('/');
+      }
+    } else {
+      // If no tokens, try to login (fallback)
+      await handleLogin();
+    }
+  } catch (error) {
+    handleAuthError(error);
+  }
+};
 
   // Error handling
   const handleAuthError = (error: unknown) => {
@@ -234,7 +283,11 @@ export default function Navbar() {
 
   // Reset form data
   const resetAuthData = () => {
-    setAuthData({
+    setLoginData({
+      email: '',
+      password: ''
+    });
+    setSignupData({
       name: '',
       email: '',
       password: '',
@@ -410,8 +463,8 @@ export default function Navbar() {
                     type="text"
                     id="name"
                     name="name"
-                    value={authData.name}
-                    onChange={handleAuthChange}
+                    value={signupData.name}
+                    onChange={handleSignupChange}
                     className={`w-full px-3 py-2 border rounded-md ${errors.name ? 'border-red-500' : 'border-gray-300'}`}
                     required={!isLogin}
                   />
@@ -425,8 +478,8 @@ export default function Navbar() {
                   type="email"
                   id="email"
                   name="email"
-                  value={authData.email}
-                  onChange={handleAuthChange}
+                  value={isLogin ? loginData.email : signupData.email}
+                  onChange={isLogin ? handleLoginChange : handleSignupChange}
                   className={`w-full px-3 py-2 border rounded-md ${errors.email ? 'border-red-500' : 'border-gray-300'}`}
                   required
                 />
@@ -439,8 +492,8 @@ export default function Navbar() {
                   type="password"
                   id="password"
                   name="password"
-                  value={authData.password}
-                  onChange={handleAuthChange}
+                  value={isLogin ? loginData.password : signupData.password}
+                  onChange={isLogin ? handleLoginChange : handleSignupChange}
                   className={`w-full px-3 py-2 border rounded-md ${errors.password ? 'border-red-500' : 'border-gray-300'}`}
                   required
                 />
@@ -454,8 +507,8 @@ export default function Navbar() {
                     type="password"
                     id="confirmPassword"
                     name="confirmPassword"
-                    value={authData.confirmPassword}
-                    onChange={handleAuthChange}
+                    value={signupData.confirmPassword}
+                    onChange={handleSignupChange}
                     className={`w-full px-3 py-2 border rounded-md ${errors.confirmPassword ? 'border-red-500' : 'border-gray-300'}`}
                     required={!isLogin}
                   />
