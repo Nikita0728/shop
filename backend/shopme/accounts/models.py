@@ -7,5 +7,6 @@ class CustomUser(AbstractUser):
     age = models.PositiveIntegerField(null=True, blank=True)
     phone_number = models.CharField(max_length=15, null=True, blank=True)
 
-    def __str__(self):
-        return self.username
+    def save(self, *args, **kwargs):
+        self.is_active = True  # Ensure new users are active
+        super().save(*args, **kwargs)

@@ -43,6 +43,11 @@ INSTALLED_APPS = [
     'rest_framework',
     'products'
 ]
+AUTHENTICATION_BACKENDS = [
+    'accounts.backends.EmailAuthBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

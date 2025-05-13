@@ -152,8 +152,26 @@ export default function Navbar() {
       if (isLogin) {
         await handleLogin();
       } else {
-        await handleRegistration();
-      }
+  // Fallback login with signup credentials
+  await axios.post("http://127.0.0.1:8000/login/", {
+    email: signupData.email,
+    password: signupData.password
+  }).then(loginResponse => {
+    localStorage.setItem('access', loginResponse.data.access);
+    localStorage.setItem('refresh', loginResponse.data.refresh);
+    localStorage.setItem('status', 'Logged In');
+
+    setIsLoggedIn(true);
+    setShowAuthModal(false);
+    resetAuthData();
+
+    if (loginResponse.data.isadmin) {
+      window.location.href = '/adminsite/dashboard';
+    } else {
+      router.push('/');
+    }
+  }).catch(handleAuthError);
+}
     } catch (error) {
       handleAuthError(error);
     } finally {
