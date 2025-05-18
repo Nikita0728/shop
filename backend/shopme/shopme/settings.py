@@ -41,13 +41,21 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'accounts',
     'rest_framework',
-    'products'
+    'products',
+    'channels'
 ]
 AUTHENTICATION_BACKENDS = [
     'accounts.backends.EmailAuthBackend',
     'django.contrib.auth.backends.ModelBackend',
 ]
 
+CHANNEL_LAYERS ={
+    'default':{
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+    }
+}
+
+ASGI_APPLICATION ='shopme.asgi.application'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
